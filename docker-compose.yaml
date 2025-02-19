@@ -1,0 +1,96 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    environment:
+      REDIS_PASSWORD: redis_password
+    ports:
+      - "6379:6379"
+
+  chat-service-1:
+    build:
+      context: ./chat-service
+      target: development
+    container_name: chat-service-1
+    environment:
+      - PORT=4001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "4001:4001"
+    volumes:
+      - ./chat-service:/app
+      - /app/node_modules
+    command: npx nodemon src/server.ts
+
+  # chat-service-2:
+  #   build:
+  #     context: ./chat-service
+  #     target: development
+  #   container_name: chat-service-2
+  #   environment:
+  #     - DB_HOST=db
+  #     - DB_PORT=5432
+  #     - JWT_SECRET=auth_jwt_secret
+  #     - ADMIN_JWT_SECRET=auth_jwt_secret
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #     - REDIS_PASSWORD=redis_password
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   ports:
+  #     - "4002:4002"
+  #   volumes:
+  #     - ./chat-service:/app
+  #   command: npx nodemon src/server.ts
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+      target: development
+    container_name: gateway-service
+    environment:
+      - PORT=8888
+      - DB_HOST=db
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+      - CHAT_SERVICE_REPLICAS=1
+      - CHAT_SERVICE=http://chat-service-1
+      - CHAT_SERVICE_PORT=4001
+      - USER_SERVICE=http://chat-service-1
+      - USER_SERVICE_PORT=4001
+      - NODE_ENV=development
+    depends_on:
+      - chat-service-1
+      - redis
+      - postgres
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./gateway-service:/app
+      - /app/node_modules
+    command: npx nodemon src/server.ts

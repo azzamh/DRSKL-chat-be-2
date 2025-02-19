@@ -1,0 +1,106 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    environment:
+      REDIS_PASSWORD: redis_password
+    ports:
+      - "6379:6379"
+
+  user-service:
+    build:
+      context: ./user-service
+      # asumsikan user-service juga punya Dockerfile multi-stage,
+      # kalau mau dev, kita bisa pakai target: development
+      target: development
+    container_name: user-service
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - postgres
+    ports:
+      - "8887:8887"
+    volumes:
+      # Opsional: bind mount agar code changes terdeteksi
+      - ./user-service:/app
+
+  chat-service:
+    build:
+      context: ./chat-service
+      target: development
+    container_name: chat-service
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - postgres
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./chat-service:/app
+
+  presence-service:
+    build:
+      context: ./presence-service
+      target: development
+    container_name: presence-service
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - postgres
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./presence-service:/app
+
+  gateway-service:
+    build:
+      context: ./gateway
+      target: development
+    container_name: gateway
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - user-service
+      - chat-service
+      - presence-service
+      - redis
+      - postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway-service:/app

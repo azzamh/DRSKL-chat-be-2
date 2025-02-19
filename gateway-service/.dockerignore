@@ -1,0 +1,25 @@
+# .dockerignore
+
+# 1. Ignore node_modules di host
+node_modules
+
+# 2. Ignore file log, cache, atau output build
+*.log
+.cache/
+dist/
+
+# 3. Ignore file/direktori config sensitif, misal .env
+.env
+.env.local
+
+# 4. Ignore file versi kontrol (Git, dsb.)
+.git
+.gitignore
+
+# 5. Ignore Dockerfile / docker-compose jika tidak ingin masuk image
+docker-compose.yml
+Dockerfile
+
+# 6. (opsional) Folder lain yang tidak diperlukan di dalam image
+tests/
+docs/
