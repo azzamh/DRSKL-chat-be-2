@@ -56,18 +56,17 @@ const io = new Server(server, {
  */
 io.use((socket, next) => {
   // Ambil token dari socket handshake
-  const token = socket.handshake.auth?.token as string
+  // const token = socket.handshake.auth?.token as string
+  const token = socket.handshake.query.token as string | undefined;
+  console.log('Token from query:', token);
 
-  if (!token) {
-    return next(new Error('No token provided'))
-  }
 
   // Verifikasi JWT
   if (!process.env.JWT_SECRET) {
     return next(new Error('JWT_SECRET is not configured'))
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  jwt.verify(Array.isArray(token) ? token[0] : token, process.env.JWT_SECRET, (err: jwt.VerifyErrors | null, decoded: string | jwt.JwtPayload | undefined) => {
     if (err) {
       console.error('JWT Error:', err)
       return next(new Error('Authentication error'))

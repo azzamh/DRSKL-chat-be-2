@@ -43,7 +43,7 @@ export const getMessageById = async (messageId: number) => {
         left join users as u on u.id = m.sender_id 
         where m.id = ${messageId}
       ` );
-      console.log('getMessageById', result.rows)
+      // console.log('getMessageById', result.rows)
   return result.rows[0];
 }
 

@@ -42,7 +42,7 @@ export const getConversationsByUserId = async (userId: number) => {
                 AND uc2.user_id <> ${userId.toString()}
                 AND c.is_group = FALSE;
             ` );
-            
+        console.log("getConversationsByUserId", userId,result.rows);
         return result.rows;
     } catch (error) {
         console.error("getConversationsByUserId error", error);
@@ -67,6 +67,7 @@ export const getPrivateConversationByUserIds = async (userId: string, peerUserId
                     AND c.is_group = false 
                     AND uc.user_id = ${peerUserId.toString()} 
                 ` );
+                console.log("getPrivateConversationByUserIds", result.rows[0]);
         return result.rows[0];
 
     } catch (error) {

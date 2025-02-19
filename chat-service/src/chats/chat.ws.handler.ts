@@ -7,7 +7,7 @@ import * as redis from '@src/shared/redisAdapter'
 import { send } from 'process'
 import { group } from 'console'
 import { json } from 'stream/consumers'
-
+import os from 'os';
 
 
 const userSocketMap = new Map<string, string>();
@@ -28,7 +28,12 @@ export async function chatHandler(io: Server, socket: Socket) {
 
     // event "send_messages" 
     socket.on('send_messages', async (data: any) => {
-      console.log(`Raw message from user [${userId}]:`, data);
+
+      console.log('>>>>>>>>>>>send_messages', data);
+      const authHeader = socket.handshake.headers;
+      console.log('Authorization header:', userId, authHeader.authorization);
+      // console.log(`Raw message from user [${userId}]:`, data);
+      const instanceAddress = os.hostname();
       
       let parsedData: SendMeddagePayload;
       try {
@@ -39,9 +44,10 @@ export async function chatHandler(io: Server, socket: Socket) {
       }
 
       const { conversationId, message, isGroup } = parsedData;
+      console.log('>>>>>>>>>>>>Instance Address:', instanceAddress, userId, message);
       if (!isGroup) {
         const resp = await chatService.sendPrivateMessage(userId, conversationId, message);
-        console.log('Response from chatService.sendPrivateMessage:', resp);
+        // console.log('Response from chatService.sendPrivateMessage:', resp);
         if (resp.status === 201) {
           io.to(socket.id).emit('send_messages_ok', resp.data);
         }
@@ -59,15 +65,15 @@ export async function chatHandler(io: Server, socket: Socket) {
 
     // Subscribe to Redis channel for messages
     redis.subscribeToChannel(`send_messages:${userId}`, async (data) => {
-      console.log('====================>>>>>>>Message from redis:', data);
+      // console.log('====================>>>>>>>Message from redis:', data);
       const pubsubPrivateMessageData = JSON.parse(data) as PubsubPrivateMessageData
-      console.log('Message from redis pubsubPrivateMessageData:', pubsubPrivateMessageData);
+      // console.log('Message from redis pubsubPrivateMessageData:', pubsubPrivateMessageData);
       const resp = await chatService.getMessageById(pubsubPrivateMessageData.messageId)
       const message = resp.data
-      console.log('Message from redis message:', message);
+      // console.log('Message from redis message:', message);
       const recipientSocketId = userSocketMap.get(pubsubPrivateMessageData.recipientId);
       if (recipientSocketId) {
-        console.log('Sending message to recipient:', recipientSocketId, message);
+        // console.log('Sending message to recipient:', recipientSocketId, message);
         io.to(recipientSocketId).emit('receive_message', message);
       }
     });

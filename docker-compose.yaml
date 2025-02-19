@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
+    networks:
+      - chat-network
 
   redis:
     image: redis:latest
@@ -17,6 +19,26 @@ services:
       REDIS_PASSWORD: redis_password
     ports:
       - "6379:6379"
+    networks:
+      - chat-network
+
+  haproxy:
+    image: haproxy:2.8
+    container_name: haproxy
+    ports:
+      - "8888:8888"
+      - "8404:8404"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    networks:
+      - chat-network
+    environment:
+      - TZ=Asia/Jakarta
+    # Tambahkan DNS settings
+    dns:
+      - 127.0.0.11
+    dns_search:
+      - chat-network
 
   chat-service-1:
     build:
@@ -40,14 +62,43 @@ services:
     volumes:
       - ./chat-service:/app
       - /app/node_modules
+    networks:
+      - chat-network
     command: npx nodemon src/server.ts
 
-  # chat-service-2:
+  chat-service-2:
+    build:
+      context: ./chat-service
+      target: development
+    container_name: chat-service-2
+    environment:
+      - PORT=4002
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "4002:4002"
+    volumes:
+      - ./chat-service:/app
+      - /app/node_modules
+    networks:
+      - chat-network
+    command: npx nodemon src/server.ts
+
+  # gateway-service:
   #   build:
-  #     context: ./chat-service
+  #     context: ./gateway-service
   #     target: development
-  #   container_name: chat-service-2
+  #   container_name: gateway-service
   #   environment:
+  #     - PORT=8888
   #     - DB_HOST=db
   #     - DB_PORT=5432
   #     - JWT_SECRET=auth_jwt_secret
@@ -55,42 +106,23 @@ services:
   #     - REDIS_HOST=redis
   #     - REDIS_PORT=6379
   #     - REDIS_PASSWORD=redis_password
+  #     - CHAT_SERVICE_REPLICAS=1
+  #     - CHAT_SERVICE=http://chat-service-1
+  #     - CHAT_SERVICE_PORT=4001
+  #     - USER_SERVICE=http://chat-service-1
+  #     - USER_SERVICE_PORT=4001
+  #     - NODE_ENV=development
   #   depends_on:
-  #     - postgres
+  #     - chat-service-1
   #     - redis
+  #     - postgres
   #   ports:
-  #     - "4002:4002"
+  #     - "8888:8888"
   #   volumes:
-  #     - ./chat-service:/app
+  #     - ./gateway-service:/app
+  #     - /app/node_modules
   #   command: npx nodemon src/server.ts
 
-  gateway-service:
-    build:
-      context: ./gateway-service
-      target: development
-    container_name: gateway-service
-    environment:
-      - PORT=8888
-      - DB_HOST=db
-      - DB_PORT=5432
-      - JWT_SECRET=auth_jwt_secret
-      - ADMIN_JWT_SECRET=auth_jwt_secret
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=redis_password
-      - CHAT_SERVICE_REPLICAS=1
-      - CHAT_SERVICE=http://chat-service-1
-      - CHAT_SERVICE_PORT=4001
-      - USER_SERVICE=http://chat-service-1
-      - USER_SERVICE_PORT=4001
-      - NODE_ENV=development
-    depends_on:
-      - chat-service-1
-      - redis
-      - postgres
-    ports:
-      - "8888:8888"
-    volumes:
-      - ./gateway-service:/app
-      - /app/node_modules
-    command: npx nodemon src/server.ts
+networks:
+  chat-network:
+    driver: bridge
