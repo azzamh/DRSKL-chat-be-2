@@ -34,7 +34,6 @@ services:
       - chat-network
     environment:
       - TZ=Asia/Jakarta
-    # Tambahkan DNS settings
     dns:
       - 127.0.0.11
     dns_search:
@@ -92,36 +91,32 @@ services:
       - chat-network
     command: npx nodemon src/server.ts
 
-  # gateway-service:
-  #   build:
-  #     context: ./gateway-service
-  #     target: development
-  #   container_name: gateway-service
-  #   environment:
-  #     - PORT=8888
-  #     - DB_HOST=db
-  #     - DB_PORT=5432
-  #     - JWT_SECRET=auth_jwt_secret
-  #     - ADMIN_JWT_SECRET=auth_jwt_secret
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - REDIS_PASSWORD=redis_password
-  #     - CHAT_SERVICE_REPLICAS=1
-  #     - CHAT_SERVICE=http://chat-service-1
-  #     - CHAT_SERVICE_PORT=4001
-  #     - USER_SERVICE=http://chat-service-1
-  #     - USER_SERVICE_PORT=4001
-  #     - NODE_ENV=development
-  #   depends_on:
-  #     - chat-service-1
-  #     - redis
-  #     - postgres
-  #   ports:
-  #     - "8888:8888"
-  #   volumes:
-  #     - ./gateway-service:/app
-  #     - /app/node_modules
-  #   command: npx nodemon src/server.ts
+
+  user-service:
+    build:
+      context: ./user-service
+      target: development
+    container_name: user-service
+    environment:
+      - PORT=5001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./user-service:/app
+      - /app/node_modules
+    networks:
+      - chat-network
+    command: npx nodemon src/server.ts
 
 networks:
   chat-network:

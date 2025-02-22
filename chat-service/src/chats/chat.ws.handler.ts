@@ -29,11 +29,10 @@ export async function chatHandler(io: Server, socket: Socket) {
     // event "send_messages" 
     socket.on('send_messages', async (data: any) => {
 
-      console.log('>>>>>>>>>>>send_messages', data);
+      console.log('>>>>>>>>>>>send_messages', socket.id, data);
       const authHeader = socket.handshake.headers;
       console.log('Authorization header:', userId, authHeader.authorization);
-      // console.log(`Raw message from user [${userId}]:`, data);
-      const instanceAddress = os.hostname();
+      console.log(`Raw message from user [${userId}]:`, data);
       
       let parsedData: SendMeddagePayload;
       try {
@@ -44,10 +43,10 @@ export async function chatHandler(io: Server, socket: Socket) {
       }
 
       const { conversationId, message, isGroup } = parsedData;
-      console.log('>>>>>>>>>>>>Instance Address:', instanceAddress, userId, message);
+      console.log('>>>>>>>>>>>>:', socket.id, userId, conversationId, message, isGroup);
       if (!isGroup) {
         const resp = await chatService.sendPrivateMessage(userId, conversationId, message);
-        // console.log('Response from chatService.sendPrivateMessage:', resp);
+        console.log('Response from chatService.sendPrivateMessage:', resp);
         if (resp.status === 201) {
           io.to(socket.id).emit('send_messages_ok', resp.data);
         }
