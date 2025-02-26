@@ -24,10 +24,11 @@ kubectl config use-context minikube
 docker images
 docker rmi IMG_ID
 
-user-service % docker build --target production -t user-service:latest .
+<!-- user-service % docker build --target production -t user-service:latest .
+user-service % docker build --target production -t chat-service:latest . -->
 
-user-service % docker build --target production -t chat-service:latest .
-
+docker build -t user-service:latest .
+docker build -t chat-service:latest .
 
 kubectl get pods -l app=haproxy
 kubectl logs 

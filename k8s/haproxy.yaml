@@ -10,23 +10,22 @@ data:
       
     resolvers k8s
       nameserver dns 10.96.0.10:53
-      accepted_payload_size 8192
-      resolve_retries 3
-      timeout resolve 1s
-      timeout retry 1s
-      hold other 30s
-      hold refused 30s
-      hold nx 30s
-      hold timeout 30s
+      parse-resolv-conf
+      resolve_retries 10
+      timeout resolve 5s
+      timeout retry 5s
       hold valid 10s
+      hold nx 1s
+      hold timeout 1s
+      hold refused 1s
 
     defaults
       log global
-      timeout connect 5000ms
-      timeout client 50000ms
-      timeout server 50000ms
-      option httplog
-      timeout tunnel 3600s
+      option dontlognull
+      retries 3
+      timeout connect 10s
+      timeout client 30s
+      timeout server 30s
 
     frontend front
       bind *:8888
@@ -50,14 +49,16 @@ data:
       balance roundrobin
       option http-server-close
       timeout tunnel 1h
-      server-template chat 2 chat-service:4001 resolvers k8s init-addr none
+      option tcp-check
+      server-template chat 2 chat-service.default.svc.cluster.local:4001 resolvers k8s init-addr none check
 
     backend chat_http_backend
       mode http
       balance roundrobin
       option http-server-close
       option forwardfor
-      server-template chat 2 chat-service:4001 resolvers k8s init-addr none
+      option tcp-check
+      server-template chat 2 chat-service.default.svc.cluster.local:4001 resolvers k8s init-addr none check
 
     backend user_http_backend
       mode http
@@ -72,7 +73,6 @@ data:
         stats uri /stats
         stats refresh 10s
         stats auth admin:admin
-
 
 ---
 apiVersion: apps/v1

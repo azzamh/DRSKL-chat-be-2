@@ -27,9 +27,17 @@ spec:
       labels:
         app: chat-service
     spec:
+      terminationGracePeriodSeconds: 10
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "5"
+      dnsPolicy: ClusterFirst
+      subdomain: chat-service
       containers:
         - name: chat-service
           image: chat-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4001
               name: http
@@ -59,3 +67,19 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: redis-password
+          startupProbe:
+            tcpSocket:
+              port: 4001
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 4001
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 4001
+            initialDelaySeconds: 10
+            periodSeconds: 10

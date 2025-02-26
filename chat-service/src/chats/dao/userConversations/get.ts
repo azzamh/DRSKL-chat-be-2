@@ -6,7 +6,7 @@ export const getUserConversations = async (userId: number) => {
     const result = await db
         .select()
         .from(schema.usersConversations)
-        .where(eq(schema.usersConversations.user_id, userId))
+        .where(eq(schema.usersConversations.user_id, userId.toString()))
     return result;
 }
 
