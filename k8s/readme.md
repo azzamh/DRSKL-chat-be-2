@@ -32,3 +32,6 @@ docker build -t chat-service:latest .
 
 kubectl get pods -l app=haproxy
 kubectl logs 
+
+
+<!-- https://chatgpt.com/c/67bed15e-ddac-8008-b82a-7541f1995cf2?model=o3-mini -->
