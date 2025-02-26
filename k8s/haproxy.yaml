@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+data:
+  haproxy.cfg: |
+    global
+      log stdout format raw local0 debug
+      maxconn 4096
+      
+    resolvers k8s
+      nameserver dns 10.96.0.10:53
+      accepted_payload_size 8192
+      resolve_retries 3
+      timeout resolve 1s
+      timeout retry 1s
+      hold other 30s
+      hold refused 30s
+      hold nx 30s
+      hold timeout 30s
+      hold valid 10s
+
+    defaults
+      log global
+      timeout connect 5000ms
+      timeout client 50000ms
+      timeout server 50000ms
+      option httplog
+      timeout tunnel 3600s
+
+    frontend front
+      bind *:8888
+      mode http
+      
+      acl is_websocket hdr(Upgrade) -i WebSocket
+      acl is_upgrade hdr(Connection) -i upgrade
+      
+      use_backend ws_backend if is_websocket is_upgrade
+      
+      acl path_user_service path_beg /api/user
+      acl path_chat_service path_beg /api/chat
+      
+      use_backend user_http_backend if path_user_service
+      use_backend chat_http_backend if path_chat_service
+      
+      default_backend chat_http_backend
+
+    backend ws_backend
+      mode http
+      balance roundrobin
+      option http-server-close
+      timeout tunnel 1h
+      server-template chat 2 chat-service:4001 resolvers k8s init-addr none
+
+    backend chat_http_backend
+      mode http
+      balance roundrobin
+      option http-server-close
+      option forwardfor
+      server-template chat 2 chat-service:4001 resolvers k8s init-addr none
+
+    backend user_http_backend
+      mode http
+      balance roundrobin
+      option http-server-close
+      option forwardfor
+      server user user-service:5001 check    
+    listen stats
+        bind *:8404
+        mode http
+        stats enable
+        stats uri /stats
+        stats refresh 10s
+        stats auth admin:admin
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haproxy
+  template:
+    metadata:
+      labels:
+        app: haproxy
+    spec:
+      containers:
+        - name: haproxy
+          image: haproxy:2.8
+          ports:
+            - containerPort: 8888
+            - containerPort: 8404
+          volumeMounts:
+            - name: config
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+      volumes:
+        - name: config
+          configMap:
+            name: haproxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: haproxy
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 8888
+      targetPort: 8888
+    - name: stats
+      port: 8404
+      targetPort: 8404
+  selector:
+    app: haproxy
