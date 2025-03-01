@@ -3,8 +3,8 @@ import { conversations } from './conversations';
 
 export const messages = pgTable('messages', {
     id: serial('id').primaryKey(),
-    conversation_id: integer('conversation_id').notNull().references(() => conversations.id),
-    // conversation_Type: varchar('chat_type', { length: 256 }).default('peer'),// peer | group
+    test_id: varchar('test_id').notNull().unique(),
+    conversation_id: uuid('conversation_id').notNull().references(() => conversations.id),
     sender_id: uuid('sender_id').notNull(),
     content: varchar('content', { length: 256 }).notNull(),
     sent_at: timestamp('sent_at', { withTimezone: true }).defaultNow(),

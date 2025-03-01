@@ -1,22 +1,31 @@
-import * as schema from '@db/schema/chat/conversations';
 import { db } from "@src/db";
-import { eq } from "drizzle-orm";
+import { Conversations } from "@db/schema";
+import { sql } from "drizzle-orm";
 
-export const updateConversations = async (id: number, data: Partial<typeof schema.conversations.$inferInsert>) => {
+interface UpdateConversationParams {
+    id: number;
+    name?: string;
+}
+
+export const updateConversation = async (params: UpdateConversationParams): Promise<Conversations> => {
     try {
-        const result = await db
-            .update(schema.conversations)
-            .set(data)
-            .where(eq(schema.conversations.id, id))
-            .returning({
-                id: schema.conversations.id,
-                name: schema.conversations.name,
-                is_group: schema.conversations.is_group,
-            });
-        // console.log("updateConversations result", result);
-        return result;
+        const setClause = [];
+        if (params.name !== undefined) {
+            setClause.push(`name = ${params.name}`);
+        }
+
+        const query = sql`
+            UPDATE conversations
+            SET ${sql.raw(setClause.join(', '))}
+            WHERE id = ${params.id}
+            AND is_deleted = false
+            RETURNING id, name, is_group
+        `;
+
+        const result = await db.execute(query);
+        return result.rows[0] as Conversations;
     } catch (error) {
-        console.error("updateConversations error", error);
+        console.error("updateConversation error", error);
         throw error;
     }
 }

@@ -1,4 +1,4 @@
-import { NewUser } from "@db/schema/users/users";
+import { NewUser } from "@db/schema/user/users";
 import * as schema from '@db/schema';
 import { db } from "@src/db";
 import { eq } from "drizzle-orm";
@@ -9,8 +9,6 @@ export interface UpdateUserDao {
     username?: string;
     full_name?: string;
     password?: string;
-    last_online?: Date;
-    is_online?: string;
 }
 
 export const updateUser = async (data: UpdateUserDao) => {
@@ -24,13 +22,6 @@ export const updateUser = async (data: UpdateUserDao) => {
   if (data.password) {
     updateData.password = data.password;
   }
-  if (data.last_online) {
-    updateData.last_online = data.last_online;
-  }
-  if (data.is_online) {
-    updateData.is_online = data.is_online;
-  }
-
     const result = await db
         .update(schema.users)
         .set({
@@ -44,8 +35,6 @@ export const updateUser = async (data: UpdateUserDao) => {
             id: schema.users.id,
             username: schema.users.username,
             full_name: schema.users.full_name,
-            last_online: schema.users.last_online,
-            is_online: schema.users.is_online,
             created_at: schema.users.created_at,
             updated_at: schema.users.updated_at
         })

@@ -1,4 +1,4 @@
-import * as schema from '@db/schema/users/users';
+import * as schema from '@db/schema/user/users';
 import { db } from "@src/db";
 import { eq, and } from "drizzle-orm";
 
@@ -9,8 +9,6 @@ export const getUserById = async (user_id: string) => {
             username: schema.users.username,
             // email: schema.users.email,
             full_name: schema.users.full_name,
-            last_online: schema.users.last_online,
-            is_online: schema.users.is_online,
             created_at: schema.users.created_at,
             updated_at: schema.users.updated_at
         })
@@ -30,7 +28,6 @@ export const getUserByUsername = async (username: string) => {
         .where(
             and(
                 eq(schema.users.username, username),
-
             )
         )
     return result[0];

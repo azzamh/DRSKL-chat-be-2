@@ -6,10 +6,17 @@ import { verifyJWT } from "@src/shared/middleware/verifyJWT";
 
 const router = express.Router();
 
-router.post("/conversation/start", verifyJWT, validate(Validation.startPrivateConversation), Handler.startPrivateConversation);
-router.get("/conversation/list", verifyJWT ,Handler.getConversationsList);
-router.get("/conversation/:conversation_id/messages", verifyJWT, Handler.getMessagesByConversation);
-router.post("/message/send", verifyJWT, validate(Validation.sendMessage), Handler.sendPrivateMessage);
+router.post("/room/create", verifyJWT, validate(Validation.createRoom), Handler.createRoom);
+router.post("/room/:room_id/join", verifyJWT, validate(Validation.joinRoom), Handler.joinRoom);
+router.get("/room/list", verifyJWT, Handler.getRoomList);
+router.get("/room/:room_id/messages",
+  verifyJWT,
+  validate(Validation.getRoomMessages),
+  Handler.getRoomMessages
+);
+router.post("/message/send", verifyJWT, validate(Validation.sendMessage), Handler.sendMessage);
+router.get("/message/:id", verifyJWT, Handler.getMessageById);
+router.post("/user", validate(Validation.addOrUpdateUser), Handler.addOrUpdateUser);
 
 export default router;
 

@@ -4,10 +4,9 @@ import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import cors from 'cors';
 import chatRouter from './chats/chat.routes';
-import userRouter from './users/user.routes';
 import jwt from 'jsonwebtoken';
 import { DecodedToken } from './shared/types';
-import { chatHandler } from './chats/chat.ws.handler';
+// import { chatHandler } from './chats/chat.ws.handler';
 
 const app = express();
 const server = createServer(app);
@@ -25,7 +24,6 @@ app.get('/', (_req: Request, res: Response) => {
 
 // Routes
 app.use('/api/chat', chatRouter);
-app.use('/api/user', userRouter);
 
 
 // Error handling middleware
@@ -81,9 +79,9 @@ io.use((socket, next) => {
 
 
 // Event utama Socket.IO
-io.on('connection', async (socket) => {
-  chatHandler(io, socket)
-})
+// io.on('connection', async (socket) => {
+//   chatHandler(io, socket)
+// })
 
 
 

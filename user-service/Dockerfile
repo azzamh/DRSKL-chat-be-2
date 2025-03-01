@@ -61,7 +61,7 @@ COPY --from=build /app/dist ./dist
 COPY . .
 
 # Expose port
-EXPOSE 5001
+EXPOSE 4001
 
 # Perintah untuk menjalankan aplikasi di production
 CMD ["npm", "run", "start"]

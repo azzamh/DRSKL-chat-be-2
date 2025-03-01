@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { getUserByUsername } from '../dao/get';
 
 import { InternalServerErrorResponse, NotFoundResponse, OkResponse } from "@src/shared/commons/patterns"
-import { User } from '@db/schema/users/users';
+import { User } from '@db/schema/user/users';
 
 export const loginService = async (
     username: string,
@@ -24,6 +24,7 @@ export const loginService = async (
 
         const payload = {
             id: user.id,
+            username: user.username,
         }
         const secret: string = process.env.JWT_SECRET as string;
         const token = jwt.sign(payload, secret, {

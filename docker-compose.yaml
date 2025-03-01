@@ -1,14 +1,27 @@
 version: "3.9"
 services:
-  postgres:
+  postgres-user:
     image: postgres:15
-    container_name: postgres
+    container_name: postgres-user
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT_USER}
     ports:
       - "5432:5432"
+    networks:
+      - chat-network
+  postgres-chat:
+    image: postgres:15
+    container_name: postgres-chat
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT_CHAT}
+    ports:
+      - "5433:5432"
     networks:
       - chat-network
 
@@ -16,7 +29,7 @@ services:
     image: redis:latest
     container_name: redis
     environment:
-      REDIS_PASSWORD: redis_password
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     networks:
@@ -39,25 +52,25 @@ services:
     dns_search:
       - chat-network
 
-  chat-service-1:
+  chat-service:
     build:
       context: ./chat-service
       target: development
-    container_name: chat-service-1
+    container_name: chat-service
     environment:
-      - PORT=4001
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - JWT_SECRET=auth_jwt_secret
-      - ADMIN_JWT_SECRET=auth_jwt_secret
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=redis_password
+      - PORT=${CHAT_SERVICE_PORT}
+      - DB_HOST=${POSTGRES_HOST_CHAT}
+      - DB_PORT=${POSTGRES_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
-      - postgres
+      - postgres-chat
       - redis
     ports:
-      - "4001:4001"
+      - "${CHAT_SERVICE_PORT}:${CHAT_SERVICE_PORT}"
     volumes:
       - ./chat-service:/app
       - /app/node_modules
@@ -65,32 +78,51 @@ services:
       - chat-network
     command: npx nodemon src/server.ts
 
-  chat-service-2:
+  realtime-service-1:
     build:
-      context: ./chat-service
+      context: ./realtime-service
       target: development
-    container_name: chat-service-2
+    container_name: realtime-service-1
     environment:
-      - PORT=4002
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - JWT_SECRET=auth_jwt_secret
-      - ADMIN_JWT_SECRET=auth_jwt_secret
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=redis_password
+      - PORT=${REALTIME_SERVICE_PORT1}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
-      - postgres
       - redis
     ports:
-      - "4002:4002"
+      - "${REALTIME_SERVICE_PORT1}:${REALTIME_SERVICE_PORT1}"
     volumes:
-      - ./chat-service:/app
+      - ./realtime-service:/app
       - /app/node_modules
     networks:
       - chat-network
     command: npx nodemon src/server.ts
 
+  realtime-service-2:
+    build:
+      context: ./realtime-service
+      target: development
+    container_name: realtime-service-2
+    environment:
+      - PORT=${REALTIME_SERVICE_PORT2}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - redis
+    ports:
+      - "${REALTIME_SERVICE_PORT2}:${REALTIME_SERVICE_PORT2}"
+    volumes:
+      - ./realtime-service:/app
+      - /app/node_modules
+    networks:
+      - chat-network
+    command: npx nodemon src/server.ts
 
   user-service:
     build:
@@ -98,19 +130,21 @@ services:
       target: development
     container_name: user-service
     environment:
-      - PORT=5001
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - JWT_SECRET=auth_jwt_secret
-      - ADMIN_JWT_SECRET=auth_jwt_secret
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=redis_password
+      - PORT=${USER_SERVICE_PORT}
+      - DB_HOST=${POSTGRES_HOST_USER}
+      - DB_PORT=${POSTGRES_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}  
+      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+      - PRESENCE_SERVICE_URL=${PRESENCE_SERVICE_URL}
     depends_on:
-      - postgres
+      - postgres-user
       - redis
     ports:
-      - "5001:5001"
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     volumes:
       - ./user-service:/app
       - /app/node_modules

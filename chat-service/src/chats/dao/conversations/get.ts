@@ -1,21 +1,26 @@
-import * as schema from '@db/schema';
 import { db } from "@src/db";
-import { OkResponse } from '@src/shared/commons/patterns';
-import { ok } from 'assert';
-import { eq, or, and, ne, sql } from "drizzle-orm";
+import { conversations, messages, users, usersConversations } from "@db/schema";
+import { eq, desc, max, count, and } from "drizzle-orm";
+import { Conversations } from "@db/schema/chat/conversations";
 
-export const getConversationById = async (conversationId: number) => {
+export const getConversationById = async (conversationId: string): Promise<Conversations> => {
     try {
         const result = await db
-          .select({
-              id: schema.conversations.id,
-              name: schema.conversations.name,
-              is_group: schema.conversations.is_group,
-          })
-          .from(schema.conversations)
-          .where(
-              eq(schema.conversations.id, conversationId)
-          ).execute();
+            .select({
+                id: conversations.id,
+                name: conversations.name,
+                slug: conversations.slug,
+                is_deleted: conversations.is_deleted,
+                created_at: conversations.created_at
+            })
+            .from(conversations)
+            .where(
+                and(
+                    eq(conversations.id, conversationId),
+                    eq(conversations.is_deleted, false)
+                )
+            );
+
         return result[0];
     } catch (error) {
         console.error("getConversationById error", error);
@@ -23,74 +28,62 @@ export const getConversationById = async (conversationId: number) => {
     }
 }
 
-export const getConversationsByUserId = async (userId: number) => {
+export const getConversationIdBySlug = async (slug: string): Promise<string> => {
     try {
-        const result = await db.execute(sql `
-                SELECT
-                    c.id AS id,
-                    u2.full_name as name,
-                    c.is_group
-                FROM users_conversations uc
-                JOIN conversations c
-                    ON c.id = uc.conversation_id
-                JOIN users_conversations uc2
-                    ON uc2.conversation_id = c.id
-                JOIN users u2
-                    ON u2.id = uc2.user_id
-                WHERE
-                uc.user_id = ${userId.toString()}
-                AND uc2.user_id <> ${userId.toString()}
-                AND c.is_group = FALSE;
-            ` );
-        console.log("getConversationsByUserId", userId,result.rows);
-        return result.rows;
+        const result = await db
+            .select({
+                id: conversations.id
+            })
+            .from(conversations)
+            .where(
+                eq(conversations.slug, slug)
+            )
+            .limit(1);
+            
+        return result[0].id;
     } catch (error) {
-        console.error("getConversationsByUserId error", error);
+        console.error("getConversationIdBySlug error", error);
         throw error;
     }
 }
 
-export const getPrivateConversationByUserIds = async (userId: string, peerUserId: string) => {
+export const getConversationsByUsername = async (username: string): Promise<Conversations[]> => {
     try {
-            const result = await db.execute(sql `
-                SELECT 
-                    c.id,
-                    CASE 
-                        WHEN c.is_group THEN c.name 
-                        ELSE u.username 
-                    END as name,
-                    c.is_group
-                FROM conversations c
-                LEFT JOIN users_conversations uc ON c.id = uc.conversation_id
-                LEFT JOIN users u ON u.id = uc.user_id
-                WHERE uc.user_id != ${userId.toString()}
-                    AND c.is_group = false 
-                    AND uc.user_id = ${peerUserId.toString()} 
-                ` );
-                console.log("getPrivateConversationByUserIds", result.rows[0]);
-        return result.rows[0];
+        const result = await db
+            .select({
+                id: conversations.id,
+                name: conversations.name,
+                slug: conversations.slug,
+                is_deleted: conversations.is_deleted,
+                created_at: conversations.created_at,
+                message_count: count(messages.id),
+                latest_message_id: max(messages.id)
+            })
+            .from(conversations)
+            .innerJoin(
+                usersConversations,
+                eq(conversations.id, usersConversations.conversation_id)
+            )
+            .innerJoin(
+                users,
+                eq(usersConversations.user_id, users.id)
+            )
+            .leftJoin(
+                messages,
+                eq(conversations.id, messages.conversation_id)
+            )
+            .where(
+                and(
+                    eq(users.username, username),
+                    eq(conversations.is_deleted, false)
+                )
+            )
+            .groupBy(conversations.id)
+            .orderBy(desc(max(messages.id)), desc(conversations.created_at));
 
+        return result;
     } catch (error) {
-        console.error("getPrivateConversationByUserIds error", error);
-        throw error;
-    }
-}
-
-export const gePeerIdByConversationId = async (conversationId: number, userId: string) => {
-    try {
-        const result = await db.execute(sql `
-            SELECT 
-                u.id
-            FROM conversations c
-            LEFT JOIN users_conversations uc ON c.id = uc.conversation_id
-            LEFT JOIN users u ON u.id = uc.user_id
-            WHERE uc.user_id != ${userId.toString()} 
-                AND c.id = ${conversationId.toString()}
-            ` );
-
-        return result.rows[0].id;
-    } catch (error) {
-        console.error("getConversationsByUserId error", error);
+        console.error("getConversationsByUsername error", error);
         throw error;
     }
 }

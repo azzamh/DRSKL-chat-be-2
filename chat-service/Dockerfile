@@ -15,7 +15,7 @@
   COPY . .
   
   # Expose port untuk development
-  EXPOSE 4001
+  EXPOSE 6001
   
   # Jalankan script dev (misalnya: "dev": "nodemon index.js")
   # CMD ["npm", "run", "dev"]
