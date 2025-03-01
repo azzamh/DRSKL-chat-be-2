@@ -1,9 +1,22 @@
-import { NewMessage } from "@db/schema/chat/messages";
-import * as schema from '@db/schema/chat/messages';
 import { db } from "@src/db";
 import { eq, sql } from "drizzle-orm";
 
-export const getMessagesByConversationId = async (conversationId: string) => {
+export const getMessagesByConversationIdCount = async (conversationId: string): Promise<number> => {
+  try {
+    const query = sql`
+            SELECT COUNT(*) as total
+            FROM messages m
+            WHERE m.conversation_id = ${conversationId}
+        `;
+    const result = await db.execute(query);
+    return parseInt(result.rows[0].total as string);
+  } catch (error) {
+    console.error("getMessagesByConversationIdCount error", error);
+    throw error;
+  }
+}
+
+export const getMessagesByConversationId = async (conversationId: string, limit: number = 20, offset: number = 0) => {
   try {
     const query = sql`
             SELECT 
@@ -21,10 +34,22 @@ export const getMessagesByConversationId = async (conversationId: string) => {
             LEFT JOIN conversations c ON m.conversation_id = c.id
             WHERE m.conversation_id = ${conversationId}
             ORDER BY m.id ASC
+            LIMIT ${limit}
+            OFFSET ${offset}
         `;
 
-    const result = await db.execute(query);
-    return result.rows;
+    const countQuery = sql`
+            SELECT COUNT(*) as total
+            FROM messages m
+            WHERE m.conversation_id = ${conversationId}
+        `;
+
+    const [messages] = await Promise.all([
+      db.execute(query),
+    ]);
+
+    return messages.rows;
+
   } catch (error) {
     console.error("getMessagesByConversationId error", error);
     throw error;

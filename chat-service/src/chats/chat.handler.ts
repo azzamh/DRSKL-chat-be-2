@@ -3,7 +3,9 @@ import * as Service from "./services";
 
 export const getRoomList = async (req: Request, res: Response): Promise<void> => {
     const username = req.body.user.username;
-    const response = await Service.getRoomsByUserName(username);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const response = await Service.getRoomsByUserName(username, page, limit);
     res.status(response.status).json(response);
 }
 

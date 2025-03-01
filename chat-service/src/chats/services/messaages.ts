@@ -1,5 +1,6 @@
 import * as dao from "@src/chats/dao";
 import { InternalServerErrorResponse, BadRequestResponse, OkResponse } from "@src/shared/commons/patterns";
+import { count } from "console";
 import { v4 as uuidv4 } from 'uuid';
 
 export const getMessageById = async (messageId: number) => {
@@ -16,11 +17,15 @@ export const getMessagesByConversationSlug = async (slug: string, page: number =
         const conversationId = await dao.getConversationIdBySlug(slug);
         const offset = (page - 1) * limit;
         const res = await dao.getMessagesByConversationId(conversationId, limit, offset);
+        const total = await dao.getMessagesByConversationIdCount(conversationId);
         return new OkResponse({
             messages: res,
             pagination: {
                 page,
-                limit
+                limit,
+                count: res.length,
+                total_count: total,
+                total_pages: Math.ceil(total / limit)
             }
         }).generate()
     }

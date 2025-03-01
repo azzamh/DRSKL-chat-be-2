@@ -1,12 +1,21 @@
 import * as dao from "@src/chats/dao";
 import { InternalServerErrorResponse, OkResponse } from "@src/shared/commons/patterns";
 
-export const getRoomsByUserName = async (userName: string) => {
+export const getRoomsByUserName = async (userName: string, page: number = 1, limit: number = 20) => {
   try {
-    const conversations = await dao.getConversationsByUsername(userName);
+    const offset = (page - 1) * limit;
+    const conversations = await dao.getConversationsByUsername(userName, limit, offset);
+    const total = await dao.getConversationsByUsernameCount(userName);
+
     return new OkResponse({
       conversations,
-      count: conversations.length
+      pagination: {
+        page,
+        limit,
+        count: conversations.length,
+        total_count: total,
+        total_pages: Math.ceil(total / limit)
+      },
     }).generate();
   } catch (err: any) {
     console.error('getRoomsByUserName error:', err);
@@ -27,7 +36,7 @@ export const getRoomBySlug = async (slug: string) => {
 export const createRoomWithParticipants = async (name: string, slug: string, usernames: string[]) => {
   try {
     const participantIds = await dao.getUserIdsByUsernames(usernames);
-    const conversation = await dao.createNewConversation({name, slug}, participantIds);
+    const conversation = await dao.createNewConversation({ name, slug }, participantIds);
 
     return new OkResponse({
       conversation,
@@ -42,7 +51,7 @@ export const createRoomWithParticipants = async (name: string, slug: string, use
 export const updateRoom = async (roomId: number, name: string) => {
   try {
     const c = await dao.updateConversation({
-      id: roomId, 
+      id: roomId,
       name,
     });
     return new OkResponse(c).generate();
@@ -65,7 +74,7 @@ export const deleteRoom = async (slug: string) => {
 export const joinRoom = async (slug: string, username: string) => {
   try {
     const userIds = await dao.getUserIdsByUsernames([username]);
-    await dao.addUsersToConversation(slug, userIds);
+    const res = await dao.addUsersToConversation(slug, userIds);
     return new OkResponse({}).generate();
   } catch (err: any) {
     console.error('joinRoom error:', err);
@@ -76,7 +85,7 @@ export const joinRoom = async (slug: string, username: string) => {
 export const createRoom = async (slug: string, name: string, username: string) => {
   try {
     const participantIds = await dao.getUserIdsByUsernames([username]);
-    const conversation = await dao.createNewConversation({name, slug}, participantIds);
+    const conversation = await dao.createNewConversation({ name, slug }, participantIds);
 
     return new OkResponse({
       conversation,

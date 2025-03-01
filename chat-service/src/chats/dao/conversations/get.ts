@@ -39,7 +39,7 @@ export const getConversationIdBySlug = async (slug: string): Promise<string> => 
                 eq(conversations.slug, slug)
             )
             .limit(1);
-            
+
         return result[0].id;
     } catch (error) {
         console.error("getConversationIdBySlug error", error);
@@ -47,7 +47,37 @@ export const getConversationIdBySlug = async (slug: string): Promise<string> => 
     }
 }
 
-export const getConversationsByUsername = async (username: string): Promise<Conversations[]> => {
+export const getConversationsByUsernameCount = async (username: string): Promise<number> => {
+    try {
+        const result = await db
+            .select({
+                id: conversations.id
+            })
+            .from(conversations)
+            .innerJoin(
+                usersConversations,
+                eq(conversations.id, usersConversations.conversation_id)
+            )
+            .innerJoin(
+                users,
+                eq(usersConversations.user_id, users.id)
+            )
+            .where(
+                and(
+                    eq(users.username, username),
+                    eq(conversations.is_deleted, false)
+                )
+            );
+
+        return result.length;
+    }
+    catch (error) {
+        console.error("getConversationsByUsernameCount error", error);
+        throw error;
+    }
+}
+
+export const getConversationsByUsername = async (username: string, limit: number = 20, offset: number = 0): Promise<Conversations[]> => {
     try {
         const result = await db
             .select({
@@ -79,7 +109,9 @@ export const getConversationsByUsername = async (username: string): Promise<Conv
                 )
             )
             .groupBy(conversations.id)
-            .orderBy(desc(max(messages.id)), desc(conversations.created_at));
+            .orderBy(desc(max(messages.id)), desc(conversations.created_at))
+            .limit(limit)
+            .offset(offset);
 
         return result;
     } catch (error) {

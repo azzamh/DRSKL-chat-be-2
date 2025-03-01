@@ -8,7 +8,11 @@ const router = express.Router();
 
 router.post("/room/create", verifyJWT, validate(Validation.createRoom), Handler.createRoom);
 router.post("/room/:room_id/join", verifyJWT, validate(Validation.joinRoom), Handler.joinRoom);
-router.get("/room/list", verifyJWT, Handler.getRoomList);
+router.get("/room/list",
+  verifyJWT,
+  validate(Validation.getRoomList),
+  Handler.getRoomList
+);
 router.get("/room/:room_id/messages",
   verifyJWT,
   validate(Validation.getRoomMessages),
@@ -17,6 +21,7 @@ router.get("/room/:room_id/messages",
 router.post("/message/send", verifyJWT, validate(Validation.sendMessage), Handler.sendMessage);
 router.get("/message/:id", verifyJWT, Handler.getMessageById);
 router.post("/user", validate(Validation.addOrUpdateUser), Handler.addOrUpdateUser);
+
 
 export default router;
 
