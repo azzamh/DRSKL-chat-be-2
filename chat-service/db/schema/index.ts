@@ -1,4 +1,4 @@
-export * from "./chat/conversations";
+export * from "./chat/rooms";
 export * from "./chat/messages";
-export * from "./chat/usersConversations";
+export * from "./chat/usersRooms";
 export * from "./chat/users";

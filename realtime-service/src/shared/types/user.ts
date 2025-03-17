@@ -7,7 +7,8 @@ export interface User {
 }
 
 export interface DecodedToken {
-  id: number
+  id: string
+  username: string
   iat?: number
   exp?: number
 }

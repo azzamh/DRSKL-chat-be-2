@@ -52,3 +52,9 @@ export class ConflictResponse extends ErrorResponse {
         super(message?.toString() ?? "Conflict", 409);
     }
 }
+
+export class UnprocessableEntityResponse extends ErrorResponse {
+    constructor(message: Error | string | unknown = "Unprocessable Entity") {
+        super(message?.toString() ?? "Unprocessable Entity", 422);
+    }
+}

@@ -1,16 +1,16 @@
 import { db } from "@src/db";
-import { conversations } from "@db/schema";
+import { rooms } from "@db/schema";
 import { eq, and } from "drizzle-orm";
 
 export const deleteConversation = async (slug: string): Promise<boolean> => {
   try {
     const [result] = await db
-      .update(conversations)
+      .update(rooms)
       .set({ is_deleted: true })
       .where(
         and(
-          eq(conversations.slug, slug),
-          eq(conversations.is_deleted, false)
+          eq(rooms.slug, slug),
+          eq(rooms.is_deleted, false)
         )
       )
       .returning();

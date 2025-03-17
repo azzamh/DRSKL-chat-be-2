@@ -1,4 +1,4 @@
 export * from "./users";
-export * from "./conversations";
+export * from "./rooms";
 export * from "./messages";
 

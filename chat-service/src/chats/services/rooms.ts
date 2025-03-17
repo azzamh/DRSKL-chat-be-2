@@ -1,18 +1,18 @@
 import * as dao from "@src/chats/dao";
-import { InternalServerErrorResponse, OkResponse } from "@src/shared/commons/patterns";
+import { InternalServerErrorResponse, OkResponse, ConflictResponse } from "@src/shared/commons/patterns";
 
 export const getRoomsByUserName = async (userName: string, page: number = 1, limit: number = 20) => {
   try {
     const offset = (page - 1) * limit;
-    const conversations = await dao.getConversationsByUsername(userName, limit, offset);
+    const rooms = await dao.getConversationsByUsername(userName, limit, offset);
     const total = await dao.getConversationsByUsernameCount(userName);
 
     return new OkResponse({
-      conversations,
+      rooms,
       pagination: {
         page,
         limit,
-        count: conversations.length,
+        count: rooms.length,
         total_count: total,
         total_pages: Math.ceil(total / limit)
       },
@@ -73,9 +73,23 @@ export const deleteRoom = async (slug: string) => {
 
 export const joinRoom = async (slug: string, username: string) => {
   try {
+    // console.log('>>>>>>>>joinRoom1', slug, username);
     const userIds = await dao.getUserIdsByUsernames([username]);
-    const res = await dao.addUsersToConversation(slug, userIds);
-    return new OkResponse({}).generate();
+    // console.log('>>>>>>>>joinRoom2', userIds);
+    let room_slug
+    try {
+      room_slug = await dao.getConversationIdBySlug(slug);
+    }
+    catch (err: any) {
+      console.error('getConversationIdBySlug error:', err);
+    }
+    // console.log('>>>>>>>>joinRoom3', room_slug);
+    if (!room_slug) {
+      await createRoom(slug, slug, username);
+    }else{
+      await dao.addUsersToConversation(slug, userIds);
+    }
+    return new OkResponse({status: 'success'}).generate();
   } catch (err: any) {
     console.error('joinRoom error:', err);
     return new InternalServerErrorResponse(err).generate();
@@ -92,7 +106,15 @@ export const createRoom = async (slug: string, name: string, username: string) =
       participantCount: participantIds.length
     }).generate();
   } catch (err: any) {
+    if (err.code === '23505') {
+      return new ConflictResponse('Room already exists').generate();
+    }
     console.error('createRoom error:', err);
     return new InternalServerErrorResponse(err).generate();
   }
+}
+
+export const getRoomParticipants = async (conversationId: string) => {
+  const participants = await dao.getRoomParticipants(conversationId);
+  return new OkResponse(participants).generate();
 }

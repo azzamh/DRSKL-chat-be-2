@@ -21,7 +21,7 @@ export const updateMessageContent = async (params: UpdateMessageContentParams) =
             WHERE id = ${params.id}
             RETURNING 
                 id,
-                conversation_id,
+                room_id,
                 sender_id,
                 content,
                 sent_at,
@@ -57,7 +57,7 @@ export const updateMessageStatus = async (params: UpdateMessageStatusParams) => 
             WHERE id = ${params.id}
             RETURNING 
                 id,
-                conversation_id,
+                room_id,
                 sender_id,
                 content,
                 sent_at,

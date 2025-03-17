@@ -1,5 +1,5 @@
 import { db } from "@src/db";
-import { Conversations } from "@db/schema";
+import { Rooms } from "@db/schema";
 import { sql } from "drizzle-orm";
 
 interface UpdateConversationParams {
@@ -7,7 +7,7 @@ interface UpdateConversationParams {
     name?: string;
 }
 
-export const updateConversation = async (params: UpdateConversationParams): Promise<Conversations> => {
+export const updateConversation = async (params: UpdateConversationParams): Promise<Rooms> => {
     try {
         const setClause = [];
         if (params.name !== undefined) {
@@ -15,7 +15,7 @@ export const updateConversation = async (params: UpdateConversationParams): Prom
         }
 
         const query = sql`
-            UPDATE conversations
+            UPDATE rooms
             SET ${sql.raw(setClause.join(', '))}
             WHERE id = ${params.id}
             AND is_deleted = false
@@ -23,7 +23,7 @@ export const updateConversation = async (params: UpdateConversationParams): Prom
         `;
 
         const result = await db.execute(query);
-        return result.rows[0] as Conversations;
+        return result.rows[0] as Rooms;
     } catch (error) {
         console.error("updateConversation error", error);
         throw error;

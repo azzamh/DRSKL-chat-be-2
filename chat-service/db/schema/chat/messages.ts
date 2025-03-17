@@ -1,10 +1,12 @@
 import { pgTable, primaryKey, uuid, text, timestamp, varchar, serial, integer } from 'drizzle-orm/pg-core';
-import { conversations } from './conversations';
+import { rooms } from './rooms';
 
 export const messages = pgTable('messages', {
     id: serial('id').primaryKey(),
+    // global_id: varchar('global_seq_id').notNull(),
+    // room_seq_id: integer('room_seq_id').default(0).notNull(),
     test_id: varchar('test_id').notNull().unique(),
-    conversation_id: uuid('conversation_id').notNull().references(() => conversations.id),
+    room_id: uuid('room_id').notNull().references(() => rooms.id),
     sender_id: uuid('sender_id').notNull(),
     content: varchar('content', { length: 256 }).notNull(),
     sent_at: timestamp('sent_at', { withTimezone: true }).defaultNow(),
@@ -13,7 +15,7 @@ export const messages = pgTable('messages', {
 }, (table) => ({
     // pk: primaryKey({ columns: [ table.id] })
 }));
- 
+
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
 

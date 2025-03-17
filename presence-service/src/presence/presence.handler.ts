@@ -3,11 +3,11 @@ import * as Service from "./services";
 
 
 export const setOnlineStatus = async (req: Request, res: Response): Promise<void> => {
-    const { status } = req.body;
+    const { is_online } = req.body;
     const username = req.body.user.username as string;
     const userId = req.body.user.id as string;
 
-    const response = await Service.setOnlineStatus(userId, username, status);
+    const response = await Service.setOnlineStatus(userId, username, is_online);
     res.status(response.status).json(response);
 }
 
@@ -25,10 +25,10 @@ export const getTypingStatus = async (req: Request, res: Response): Promise<void
 }
 
 export const setTypingStatus = async (req: Request, res: Response): Promise<void> => {
-    const { status } = req.body;
+    const { is_typing } = req.body;
     const username = req.body.user.username as string;
     const userId = req.body.user.id as string;
-    const response = await Service.setTypingStatus(userId, username, status);
+    const response = await Service.setTypingStatus(userId, username, is_typing);
     res.status(response.status).json(response);
 }
 

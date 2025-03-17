@@ -10,8 +10,8 @@ export const getRoomList = async (req: Request, res: Response): Promise<void> =>
 }
 
 export const getMessagesByConversation = async (req: Request, res: Response): Promise<void> => {
-    const { conversation_id } = req.params;
-    const response = await Service.getMessagesByConversation(conversation_id);
+    const { room_id } = req.params;
+    const response = await Service.getMessagesByConversation(room_id);
     res.status(response.status).json(response);
 }
 

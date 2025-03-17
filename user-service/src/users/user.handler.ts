@@ -26,9 +26,10 @@ export const verifyAdminTokenHandler = async (req: Request, res: Response): Prom
 }
 
 export const getUserInfo = async (req: Request, res: Response): Promise<void> => {
-    // console.log(req);
     const userId = req.body.user.id;
+    console.log(">>>>>getUserInfo req ",userId);
     const response = await Service.getUserInfoService(userId);
+    console.log(">>>>>getUserInfo resp ",response);
     res.status(response.status).json(response);
 }
 

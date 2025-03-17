@@ -1,4 +1,4 @@
-import { publishMessage, subscribeToChannel } from '../../shared/redisAdapter/pubsub';
+import { publishMessage, subscribeToChannel } from '../redisAdapter/pubsub';
 import { IPubSubMQ } from './IPubsubMQ';
 
 export class PubsubRedisMQ implements IPubSubMQ {
@@ -14,7 +14,7 @@ export class PubsubRedisMQ implements IPubSubMQ {
       timestamp: new Date().toISOString()
     });
 
-    await publishMessage(this.ONLINE_STATUS_CHANNEL+userId, message);
+    await publishMessage(this.ONLINE_STATUS_CHANNEL + userId, message);
   }
 
   async publishTypingStatus(userId: string, isTyping: boolean): Promise<void> {

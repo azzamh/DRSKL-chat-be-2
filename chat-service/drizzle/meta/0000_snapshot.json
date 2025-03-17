@@ -1,11 +1,92 @@
 {
-  "id": "dc951383-707f-475f-b607-03934d146cac",
+  "id": "a04c17a9-8b16-4e5e-b256-21693afe3481",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
   "tables": {
-    "conversations": {
-      "name": "conversations",
+    "messages": {
+      "name": "messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "test_id": {
+          "name": "test_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "delivered_at": {
+          "name": "delivered_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "seen_at": {
+          "name": "seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "messages_room_id_rooms_id_fk": {
+          "name": "messages_room_id_rooms_id_fk",
+          "tableFrom": "messages",
+          "tableTo": "rooms",
+          "columnsFrom": [
+            "room_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "messages_test_id_unique": {
+          "name": "messages_test_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "test_id"
+          ]
+        }
+      }
+    },
+    "rooms": {
+      "name": "rooms",
       "schema": "",
       "columns": {
         "id": {
@@ -46,92 +127,11 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "conversations_slug_unique": {
-          "name": "conversations_slug_unique",
+        "rooms_slug_unique": {
+          "name": "rooms_slug_unique",
           "nullsNotDistinct": false,
           "columns": [
             "slug"
-          ]
-        }
-      }
-    },
-    "messages": {
-      "name": "messages",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "test_id": {
-          "name": "test_id",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "conversation_id": {
-          "name": "conversation_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sender_id": {
-          "name": "sender_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sent_at": {
-          "name": "sent_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "delivered_at": {
-          "name": "delivered_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "seen_at": {
-          "name": "seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "messages_conversation_id_conversations_id_fk": {
-          "name": "messages_conversation_id_conversations_id_fk",
-          "tableFrom": "messages",
-          "tableTo": "conversations",
-          "columnsFrom": [
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "messages_test_id_unique": {
-          "name": "messages_test_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "test_id"
           ]
         }
       }
@@ -179,8 +179,8 @@
         }
       }
     },
-    "users_conversations": {
-      "name": "users_conversations",
+    "users_rooms": {
+      "name": "users_rooms",
       "schema": "",
       "columns": {
         "user_id": {
@@ -189,8 +189,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "conversation_id": {
-          "name": "conversation_id",
+        "room_id": {
+          "name": "room_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -199,11 +199,11 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "users_conversations_user_id_conversation_id_pk": {
-          "name": "users_conversations_user_id_conversation_id_pk",
+        "users_rooms_user_id_room_id_pk": {
+          "name": "users_rooms_user_id_room_id_pk",
           "columns": [
             "user_id",
-            "conversation_id"
+            "room_id"
           ]
         }
       },

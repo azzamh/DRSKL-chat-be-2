@@ -12,7 +12,7 @@ export const getUserLastSeen = async (username: string) => {
             })
             .from(userStatuses)
             .where(
-              eq(userStatuses.userName, username)
+              eq(userStatuses.username, username)
             )
             .limit(1);
 
@@ -23,16 +23,17 @@ export const getUserLastSeen = async (username: string) => {
     }
 }
 
-export const upsertUserLastSeen = async (username: string, last_seen: Date) => {
+export const upsertUserLastSeen = async (userid: string, username: string, last_seen: Date) => {
     try {
         const result = await db
             .insert(userStatuses)
             .values({
-                userName: username,
+                user_id: userid,
+                username: username,
                 last_seen: last_seen
             })
             .onConflictDoUpdate({
-                target: userStatuses.userName,
+                target: userStatuses.username,
                 set: { last_seen: last_seen }
             });
 

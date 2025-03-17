@@ -1,8 +1,8 @@
 import { pgTable, primaryKey, uuid, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-export const userStatuses = pgTable('users', {
+export const userStatuses = pgTable('users_status', {
   user_id: uuid('id').unique(),
-  userName: varchar('username').unique().notNull(),
+  username: varchar('username').unique().notNull(),
   last_seen: timestamp('last_seen', { withTimezone: true }),
 }, (table) => ({
   pk: primaryKey({ columns: [table.user_id] })

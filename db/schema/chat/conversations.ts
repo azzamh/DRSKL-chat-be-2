@@ -1,7 +1,7 @@
 import { is } from 'drizzle-orm';
 import { pgTable, boolean, varchar, primaryKey, serial } from 'drizzle-orm/pg-core';
 
-export const conversations = pgTable('conversations', {
+export const rooms = pgTable('rooms', {
   id: serial('id').primaryKey(),
   name: varchar('name').notNull(),
   is_group: boolean('is_group').default(false),
@@ -9,5 +9,5 @@ export const conversations = pgTable('conversations', {
   // pk: primaryKey({ columns: [ table.id] })
 }));
 
-export type Conversations = typeof conversations.$inferSelect;
-export type NewConversations = typeof conversations.$inferInsert;
+export type Rooms = typeof rooms.$inferSelect;
+export type NewRooms = typeof rooms.$inferInsert;

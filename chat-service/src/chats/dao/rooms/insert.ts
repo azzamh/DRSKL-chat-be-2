@@ -1,22 +1,22 @@
-import { conversations, usersConversations } from '@db/schema';
-import { Conversations, NewConversations } from '@db/schema';
+import { rooms, usersRooms } from '@db/schema';
+import { Rooms, NewRooms } from '@db/schema';
 import { db } from "@src/db";
 import { eq } from "drizzle-orm";
 
-export const createNewConversation = async (data: NewConversations, participantIds: string[]): Promise<Conversations> => {
+export const createNewConversation = async (data: NewRooms, participantIds: string[]): Promise<Rooms> => {
     try {
         return await db.transaction(async (tx) => {
             // data.id = undefined;
             console.log("createNewConversation data", data);
             const [conversation] = await tx
-                .insert(conversations)
+                .insert(rooms)
                 .values(data)
                 .returning({
-                    id: conversations.id,
-                    name: conversations.name,
-                    slug: conversations.slug,
-                    is_deleted: conversations.is_deleted,
-                    created_at: conversations.created_at
+                    id: rooms.id,
+                    name: rooms.name,
+                    slug: rooms.slug,
+                    is_deleted: rooms.is_deleted,
+                    created_at: rooms.created_at
                 });
 
             if (!conversation) {
@@ -24,11 +24,11 @@ export const createNewConversation = async (data: NewConversations, participantI
             }
 
             await tx
-                .insert(usersConversations)
+                .insert(usersRooms)
                 .values(
                     participantIds.map(userId => ({
                         user_id: userId,
-                        conversation_id: conversation.id,
+                        room_id: conversation.id,
                         created_at: new Date(),
                         updated_at: new Date()
                     }))
@@ -46,20 +46,20 @@ export const addUsersToConversation = async (conversationSlug: string, userIds: 
     try {
         return await db.transaction(async (tx) => {
             const [conversation] = await tx
-                .select({ id: conversations.id })
-                .from(conversations)
-                .where(eq(conversations.slug, conversationSlug));
+                .select({ id: rooms.id })
+                .from(rooms)
+                .where(eq(rooms.slug, conversationSlug));
 
             if (!conversation) {
                 throw new Error(`Conversation with slug ${conversationSlug} not found`);
             }
 
             await tx
-                .insert(usersConversations)
+                .insert(usersRooms)
                 .values(
                     userIds.map(userId => ({
                         user_id: userId,
-                        conversation_id: conversation.id,
+                        room_id: conversation.id,
                         created_at: new Date(),
                         updated_at: new Date()
                     }))

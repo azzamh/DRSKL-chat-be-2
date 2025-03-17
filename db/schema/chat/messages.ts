@@ -1,9 +1,9 @@
 import { pgTable, primaryKey, uuid, text, timestamp, varchar, serial, integer } from 'drizzle-orm/pg-core';
-import { conversations } from './conversations';
+import { rooms } from './rooms';
 
 export const messages = pgTable('messages', {
     id: serial('id').primaryKey(),
-    conversation_id: integer('conversation_id').notNull().references(() => conversations.id),
+    room_id: integer('room_id').notNull().references(() => rooms.id),
     // conversation_Type: varchar('chat_type', { length: 256 }).default('peer'),// peer | group
     sender_id: uuid('sender_id').notNull(),
     content: varchar('content', { length: 256 }).notNull(),
@@ -13,7 +13,7 @@ export const messages = pgTable('messages', {
 }, (table) => ({
     // pk: primaryKey({ columns: [ table.id] })
 }));
- 
+
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
 
