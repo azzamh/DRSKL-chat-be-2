@@ -29,3 +29,18 @@ export const updateConversation = async (params: UpdateConversationParams): Prom
         throw error;
     }
 }
+
+export const incrementRoomSeqId = async (roomId: string) => {
+    try {
+        const result = await db.execute(sql`
+            UPDATE rooms
+            SET last_seq_id = last_seq_id + 1       
+            WHERE id = ${roomId}
+            RETURNING last_seq_id
+        `);
+        return result.rows[0].last_seq_id as number;
+    } catch (error) {
+        console.error("incrementRoomSeqId error", error);
+        throw error;
+    }
+}

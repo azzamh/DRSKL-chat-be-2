@@ -38,7 +38,7 @@ export const registerService = async (
     } catch (err: any) {
         if (err.code === '23505') {
             return new BadRequestResponse('Username already exists').generate();
-        }
+        } 
         return new InternalServerErrorResponse(err.message || 'Internal server error').generate();
     }
 }

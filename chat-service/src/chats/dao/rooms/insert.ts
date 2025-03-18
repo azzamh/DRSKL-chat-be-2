@@ -16,7 +16,8 @@ export const createNewConversation = async (data: NewRooms, participantIds: stri
                     name: rooms.name,
                     slug: rooms.slug,
                     is_deleted: rooms.is_deleted,
-                    created_at: rooms.created_at
+                    created_at: rooms.created_at,
+                    last_seq_id: rooms.last_seq_id
                 });
 
             if (!conversation) {

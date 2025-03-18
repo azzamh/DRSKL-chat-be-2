@@ -1,10 +1,10 @@
 import { pgTable, primaryKey, uuid, text, timestamp, varchar, serial, integer } from 'drizzle-orm/pg-core';
 import { rooms } from './rooms';
 
+
 export const messages = pgTable('messages', {
-    id: serial('id').primaryKey(),
-    // global_id: varchar('global_seq_id').notNull(),
-    // room_seq_id: integer('room_seq_id').default(0).notNull(),
+    id: varchar('id').notNull().primaryKey(),
+    room_seq_id: integer('room_seq_id').default(0).notNull(),
     test_id: varchar('test_id').notNull().unique(),
     room_id: uuid('room_id').notNull().references(() => rooms.id),
     sender_id: uuid('sender_id').notNull(),

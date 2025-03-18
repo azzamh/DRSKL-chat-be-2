@@ -26,7 +26,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
 
 export const getMessageById = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const response = await Service.getMessageById(parseInt(id, 10));
+    const response = await Service.getMessageById(id);
     res.status(response.status).json(response);
 }
 

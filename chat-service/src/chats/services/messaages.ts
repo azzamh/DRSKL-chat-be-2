@@ -4,8 +4,9 @@ import { InternalServerErrorResponse, CreatedResponse, OkResponse } from "@src/s
 import { count } from "console";
 import { v4 as uuidv4 } from 'uuid';
 import pubsubMQ from '@src/shared/pubsubAdapter/PubsubRedisMQ'
+import { generateId } from "../utils/idGen";
 
-export const getMessageById = async (messageId: number) => {
+export const getMessageById = async (messageId: string) => {
     try {
         const res = await chatDao.getMessageById(messageId);
         return new OkResponse(res).generate()
@@ -50,8 +51,12 @@ export const sendMessage = async (user_id: string, conversationSlug: string, mes
     try {
         const user = await chatDao.getUserById(user_id);
         const conversationId = await chatDao.getConversationIdBySlug(conversationSlug);
-  
+        const roomSeqId = await roomDao.incrementRoomSeqId(conversationId);
+        const global_id = generateId();
+        console.log("insertNewMessage global_id", global_id);
         const newMessage = await chatDao.insertNewMessage({
+            id: global_id,
+            room_seq_id: roomSeqId,
             sender_id: user_id,
             room_id: conversationId,
             content: message,
@@ -68,6 +73,7 @@ export const sendMessage = async (user_id: string, conversationSlug: string, mes
             console.log('====================>>>>>>>publishMessagesInbox:', participant.username, newMessage.id);
             pubsubMQ.publishMessagesInbox(participant.username, {
                 id: newMessage.id,
+                room_seq_id: m.room_seq_id as number,
                 room_id: m.room_id as string,
                 sender_id: user_id,
                 content: message,
@@ -81,6 +87,7 @@ export const sendMessage = async (user_id: string, conversationSlug: string, mes
         console.log('====================>>>>>>>publishMessagesOutbox:', user.username, newMessage.id);
         pubsubMQ.publishMessagesOutbox(user.username, {
             id: newMessage.id,
+            room_seq_id: m.room_seq_id as number,
             room_id: m.room_id as string,
             sender_id: user_id,
             content: message,

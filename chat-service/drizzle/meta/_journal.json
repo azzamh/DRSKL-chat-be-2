@@ -8,6 +8,20 @@
       "when": 1741111963498,
       "tag": "0000_empty_ultimates",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1742189830955,
+      "tag": "0001_solid_moon_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1742284609401,
+      "tag": "0002_chubby_silver_sable",
+      "breakpoints": true
     }
   ]
 }

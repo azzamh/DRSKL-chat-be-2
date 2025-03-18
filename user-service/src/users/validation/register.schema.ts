@@ -20,13 +20,14 @@ export const registerSchema = z.object({
                 },
             ]
 
-            return regex.every((reg) => {
+            // Return false if any regex test fails
+            for (const reg of regex) {
                 if (!reg.regex.test(password)) {
-                    throw new Error(reg.errorMessage)
+                    return false;
                 }
-                return true;
-            })
-        }, "Invalid password"),
+            }
+            return true;
+        }, "Password must contain at least one lowercase letter, one uppercase letter, and one number"),
         full_name: z.string(),
     })
 })

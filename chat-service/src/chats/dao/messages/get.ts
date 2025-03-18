@@ -21,6 +21,7 @@ export const getMessagesByConversationId = async (conversationId: string, limit:
     const query = sql`
             SELECT 
                 m.id,
+                m.room_seq_id,
                 m.room_id,
                 m.sender_id,
                 m.content,
@@ -56,11 +57,12 @@ export const getMessagesByConversationId = async (conversationId: string, limit:
   }
 }
 
-export const getMessageById = async (messageId: number) => {
+export const getMessageById = async (messageId: string) => {
   try {
     const query = sql`
             SELECT 
                 m.id,
+                m.room_seq_id,
                 m.sender_id,
                 m.content,
                 m.sent_at,

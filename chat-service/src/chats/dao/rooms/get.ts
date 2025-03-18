@@ -11,7 +11,8 @@ export const getConversationById = async (conversationId: string): Promise<Rooms
                 name: rooms.name,
                 slug: rooms.slug,
                 is_deleted: rooms.is_deleted,
-                created_at: rooms.created_at
+                created_at: rooms.created_at,
+                last_seq_id: rooms.last_seq_id
             })
             .from(rooms)
             .where(
@@ -89,7 +90,8 @@ export const getConversationsByUsername = async (username: string, limit: number
                 is_deleted: rooms.is_deleted,
                 created_at: rooms.created_at,
                 message_count: count(messages.id),
-                latest_message_id: max(messages.id)
+                latest_message_id: max(messages.id),
+                last_seq_id: rooms.last_seq_id
             })
             .from(rooms)
             .innerJoin(

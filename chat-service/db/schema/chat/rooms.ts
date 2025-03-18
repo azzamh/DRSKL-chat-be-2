@@ -7,7 +7,7 @@ export const rooms = pgTable('rooms', {
   name: varchar('name', { length: 256 }).notNull(),
   is_deleted: boolean('is_deleted').default(false).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  // last_seq_id: integer('last_seq_id').default(0).notNull(),
+  last_seq_id: integer('last_seq_id').default(0).notNull(),
 });
 
 export type Rooms = typeof rooms.$inferSelect;

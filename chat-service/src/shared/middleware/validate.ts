@@ -14,7 +14,7 @@ export const validate = (schema: z.Schema) => {
             const error = err as Error;
 
             if (error instanceof z.ZodError || error.name === 'ZodError') {
-                res.status(400).json({
+                res.status(422).json({
                     message: "Validation failed",
                     errors: (error as z.ZodError).issues.map(issue => ({
                         message: issue.message,
@@ -24,9 +24,10 @@ export const validate = (schema: z.Schema) => {
                 return;
             }
 
-            res.status(500).json({
-                message: "Internal server error",
-                error: error.message
+            // Handle errors thrown inside refine callbacks
+            res.status(422).json({
+                message: "Validation failed",
+                errors: [{ message: error.message, path: [] }]
             });
             return;
         }

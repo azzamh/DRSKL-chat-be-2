@@ -14,11 +14,8 @@ export interface IPubSubMQ {
 }
 
 export interface PubsubMessageData {
-  // senderId: string;
-  // recipientId: string;
-  // messageId: string;
-  // content: string;
-  id: number,
+  id: string,
+  room_seq_id: number,
   room_id: string,
   sender_id: string,
   content: string,
