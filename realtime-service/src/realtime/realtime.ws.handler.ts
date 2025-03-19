@@ -36,7 +36,17 @@ export async function chatHandler(io: Server, socket: Socket) {
 
       const { roomId, message } = parsedData;
       const resp = await chatService.sendMessage(tokenStr, roomId, message);
+    })
 
+    socket.on('subscribe_room_online_participants', async (data: any) => {
+      const { roomId } = data;
+      const participants = await chatService.getRoomParticipants(tokenStr, roomId);
+
+      for (const participant of participants) {
+        pubsubMQ.subscribeToOnlineStatus(participant.username, async (data) => {
+          console.log('====================>>>>>>>subscribe_room_online_participants:', participant.id, data);
+        })
+      }
     })
 
     // Event disconnect

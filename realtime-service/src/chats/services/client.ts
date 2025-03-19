@@ -94,4 +94,14 @@ export const addOrUpdateUser = async (userId: string, username: string, fullname
   }
 };
 
+export const getRoomParticipants = async (token: string, roomId: string) => {
+  try {
+    const response = await client.get(`/room/${roomId}/participants`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

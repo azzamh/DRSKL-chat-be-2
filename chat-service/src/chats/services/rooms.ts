@@ -23,10 +23,15 @@ export const getRoomsByUserName = async (userName: string, page: number = 1, lim
   }
 }
 
-export const getRoomBySlug = async (slug: string) => {
+export const getRoomDetailBySlug = async (slug: string) => {
   try {
-    const conversation = await dao.getConversationIdBySlug(slug);
-    return new OkResponse(conversation).generate();
+    const roomId = await dao.getConversationIdBySlug(slug);
+    const room = await dao.getConversationById(roomId);
+    const participants = await dao.getRoomParticipants(roomId);
+    return new OkResponse({
+      ...room,
+      participants
+    }).generate();
   } catch (err: any) {
     console.error('getRoomById error:', err);
     return new InternalServerErrorResponse(err).generate();
@@ -86,10 +91,10 @@ export const joinRoom = async (slug: string, username: string) => {
     // console.log('>>>>>>>>joinRoom3', room_slug);
     if (!room_slug) {
       await createRoom(slug, slug, username);
-    }else{
+    } else {
       await dao.addUsersToConversation(slug, userIds);
     }
-    return new OkResponse({status: 'success'}).generate();
+    return new OkResponse({ status: 'success' }).generate();
   } catch (err: any) {
     console.error('joinRoom error:', err);
     return new InternalServerErrorResponse(err).generate();
@@ -114,7 +119,14 @@ export const createRoom = async (slug: string, name: string, username: string) =
   }
 }
 
-export const getRoomParticipants = async (conversationId: string) => {
-  const participants = await dao.getRoomParticipants(conversationId);
-  return new OkResponse(participants).generate();
+export const getRoomParticipants = async (roomSlug: string) => {
+  try {
+    const conversationId = await dao.getConversationIdBySlug(roomSlug);
+    const participants = await dao.getRoomParticipants(conversationId);
+    console.log('>>>>>>>>getRoomParticipants', participants);
+    return new OkResponse(participants).generate();
+  } catch (err: any) {
+    console.error('getRoomParticipants error:', err);
+    return new InternalServerErrorResponse(err).generate();
+  }
 }

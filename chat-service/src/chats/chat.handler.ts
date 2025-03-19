@@ -19,7 +19,6 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
     const { room_id, message, test_id } = req.body;
 
     const user_id = req.body.user.id;
-    // res.status(200).json({ data: req.body.user });
     const response = await Service.sendMessage(user_id, room_id, message, test_id);
     res.status(response.status).json(response);
 }
@@ -56,6 +55,18 @@ export const getRoomMessages = async (req: Request, res: Response): Promise<void
 export const addOrUpdateUser = async (req: Request, res: Response): Promise<void> => {
     const { id, username, fullname } = req.body;
     const response = await Service.addOrUpdateUser(id, username, fullname);
+    res.status(response.status).json(response);
+}
+
+export const getRoomParticipants = async (req: Request, res: Response): Promise<void> => {
+    const { room_id } = req.params;
+    const response = await Service.getRoomParticipants(room_id);
+    res.status(response.status).json(response);
+}
+
+export const getRoomDetails = async (req: Request, res: Response): Promise<void> => {
+    const { room_id } = req.params;
+    const response = await Service.getRoomDetailBySlug(room_id);
     res.status(response.status).json(response);
 }
 
